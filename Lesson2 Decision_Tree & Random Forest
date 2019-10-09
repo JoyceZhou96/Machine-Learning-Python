@@ -42,31 +42,3 @@ grid.fit(data_train, target_train)
 
 print(grid.best_score_,grid.best_params_,grid.cv_results_)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
