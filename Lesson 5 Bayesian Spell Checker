@@ -1,0 +1,46 @@
+import re,collections
+
+
+def fetch_word(text):
+    ''' process word input'''
+    return re.findall("[a-z]+",text.lower())
+
+
+def frequency(word_libary):
+    """to count the frequency of each word in the word library"""
+    model = collections.defaultdict(lambda :1)
+    for i in word_libary:
+        model[i] +=1
+    return model
+
+alphabet = 'abcdefghijklmnopqrstuvwxyz'
+
+
+def editwd1(word):
+    """use the initial word to create possible words that user may type"""
+    n = len(word)
+    return set([word[0:i] + word[i + 1:] for i in range(n)] +                              # deletion
+               [word[0:i] + word[i + 1] + word[i] + word[i + 2:] for i in range(n - 1)] +  # transposition
+               [word[0:i] + c + word[i + 1:] for i in range(n) for c in alphabet] +        # alteration
+               [word[0:i] + c + word[i:] for i in range(n + 1) for c in alphabet])         # insertion
+
+def editwd2(word):
+    return set(e2 for e1 in editwd1(word) for e2 in editwd1(e1))  # two layers loop
+
+def word_list(words,word_library):
+    """ return unique word list from word library"""
+    return set(w for w in words if w in word_library)
+
+
+
+def correct(word,word_frequency):
+    '''if word_list([word],word_frequency.keys()) is not null, candidate will select this set, and stop calculation'''
+    candidates = word_list([word],word_frequency.keys()) or word_list(editwd1(word), word_frequency.keys())or word_list(editwd2(word),word_frequency.keys()) or [word]
+    return max(candidates, key=lambda w: word_frequency[w])  # use key to locate the max word
+
+if __name__ == '__main__':
+    word = "mani"
+    word_library = open('big.txt').read()
+    word_library = fetch_word(word_library)
+    word_frequency = frequency(word_library)
+    correct(word, word_frequency)
