@@ -22,3 +22,13 @@ This code is reviewing the first two lessons by analyzing the Titanic case. It a
 4) create our own index
 5) select the best features according to the k highest scores
 6)gradient boosting
+
+
+# Lesson 4 Bayesian Spell Checker
+It's a simple code. An application of Bayesian to correct typo.
+
+# Lesson 5 Text Theme Classfication
+It's a long code. That's for categorizing your text. It includes that
+1) Use Jieba to split words and delete stop words
+2)
+
