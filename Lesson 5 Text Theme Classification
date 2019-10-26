@@ -1,0 +1,108 @@
+import pandas as pd 
+import jieba  # a package that split chinese word
+
+df_news = pd.read_table('val.txt', names = ["category","theme",'URL',"Content"])  
+df = df_news.dropna()
+ 
+# select content
+content_df = df["Content"]
+
+stopwords=pd.read_csv("stopwords.txt",index_col=False,sep="\t",quoting=3,names=['stopword'], encoding='utf-8') # ！！！
+stopwords = stopwords.dropna()
+
+def drop_stopword(contents, stopwords):
+"""Delete stopwords in sentences and all words shown from all sentences"""
+    contents_clean = []
+    all_words = []
+    for content in contents:
+        line_clean = []
+        for word in content:
+            if word not in stopwords:
+                line_clean.append(word)
+                all_words.append(str(word)) # no matter frequency
+        contents_clean.append(line_clean)
+    return contents_clean, all_words
+
+content_clean,all_words = drop_stopword(content_n,stopwords.stopword.values)
+df_content_clean=pd.DataFrame({'content_clean':content_clean })
+df_all_words=pd.DataFrame({'all_words':all_words})
+
+word_frequency = df_all_words['all_words'].value_counts()
+df_word_frequency = pd.DataFrame({'word':word_frequency.index,"frequency":word_frequency.values})
+
+
+# to draw word cloud
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(10.0, 5.0))
+
+wordcloud = WordCloud(font_path="simhei.ttf",background_color="white",max_font_size=80)  # only with Chinese font could show Chinese word
+
+cloud = wordcloud.fit_words(word_frequency)  # the input must be a dict or a df which index is word, value is frequency
+plt.imshow(cloud)
+
+# !!! Extract keywords !!!
+import jieba.analyse
+keywords = jieba.analyse.extract_tags(content, topK=5, withWeight=False)  # input must be a str (no need to split)
+
+# !!! extract topics!!!  it's kind of cluster
+from gensim import corpora, models, similarities
+import gensim
+
+# make dictionary and do mapping
+dictionary = corpora.Dictionary(content_clean)  # initialize a Dictionary, TYPE = list of list
+corpus = [dictionary.doc2bow(sentence) for sentence in content_clean]  # do mapping
+
+# categorize the whole dataset into 20 topics
+lda = models.ldamodel.LdaModel(corpus=corpus, id2word=dictionary, num_topics=20)    # 类似Kmeans自己指定K值
+lda.show_topics()
+
+# use Bayes to do categorization
+df_train=pd.DataFrame({'contents_clean':content_clean,'label':df['category']})
+df_train.tail()
+
+# transfer label into numbers
+label_mapping = {"汽车": 1, "财经": 2, "科技": 3, "健康": 4, "体育":5, "教育": 6,"文化": 7,"军事": 8,"娱乐": 9,"时尚": 0}
+df_train['label'] = df_train['label'].map(label_mapping)
+
+from sklearn.model_selection import train_test_split
+x_train, x_test, y_train, y_test = train_test_split(df_train['contents_clean'].values, df_train['label'].values, random_state=1)
+
+# transfer word to vector
+from sklearn.feature_extraction.text import CountVectorizer
+
+words = []
+for line_index in range(len(x_train)):
+    try:
+        words.append(' '.join(x_train[line_index]))
+    except:
+        print (line_index,x_train[line_index])
+
+vec = CountVectorizer(analyzer='word', max_features=4000, lowercase = False)  # input must be a list contains str
+vec_x = vec.fit_transform(words)
+
+from sklearn.naive_bayes import MultinomialNB
+classifier = MultinomialNB()
+classifier.fit(vec_x, y_train)
+
+# preprocess and predict test dataset
+test_words = []
+for line_index in range(len(x_test)):
+    try:
+        #x_train[line_index][word_index] = str(x_train[line_index][word_index])
+        test_words.append(' '.join(x_test[line_index]))
+    except:
+         print (line_index,)
+
+vec_test = vec.fit_transform(test_words)
+classifier.score(vec_test, y_test)
+
+
+# Use TF/ADF to do classfication
+from sklearn.feature_extraction.text import TfidfVectorizer
+vectorizer = TfidfVectorizer(analyzer='word', max_features=4000,  lowercase = False)
+vectorizer.fit(words)
+
+
+
