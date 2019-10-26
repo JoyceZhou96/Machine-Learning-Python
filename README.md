@@ -30,5 +30,16 @@ It's a simple code. An application of Bayesian to correct typo.
 # Lesson 5 Text Theme Classfication
 It's a long code. That's for categorizing your text. It includes that
 1) Use Jieba to split words and delete stop words
-2)
+2) Count word frequency and plot word cloud
+3) Use jieba.analyse to extract keywords as topic words
+4) Use Gensim to do classify sentences with Y labels
+5) Word to vector
+
+
+
+
+
+
+
+
 
