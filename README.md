@@ -36,10 +36,12 @@ It's a long code. That's for categorizing your text. It includes that
 5) Word to vector
 
 
-
-
-
-
+# Lesson 5 SVM
+SVM is a kind of classifier and the effect is qutie good.
+1) How to plot boundaries and highlight the the support vector
+2) Introduce a kernel function to mapping into multiple direction
+3) Draw a 3D plot to visualize 
+4) Adjust C and gamma to control the soft margin 
 
 
 
