@@ -46,3 +46,23 @@ SVM is a kind of classifier and the effect is qutie good.
 
 # Lesson 7
 1) plot confusion matrix
+
+
+# Lesson 8 
+The code includes following:
+1) two cluster algorithms: Kmeans and DBscan
+2) use sklearn scaling data
+3) plot any two features (n *n matrix)
+4) use for loop to find best K
+
+
+
+
+
+
+
+
+
+
+
+
