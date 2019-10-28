@@ -1,0 +1,65 @@
+import numpy as np
+import pandas as pd
+from matplotlib import pyplot as plt
+import math
+from sklearn.preprocessing import StandardScaler
+
+# read and prepare data
+url = 'https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data'
+iris = pd.read_csv(url,names = ['sepal_length','sepal_width', 'petal_length', 'petal_width', 'class'])
+
+X = iris.iloc[:,0:4]
+y = iris.iloc[:,4]
+
+# plot
+plt.figure(figsize=(8, 6))
+for cnt in range(4):
+    plt.subplot(2, 2, cnt+1)
+    feature = X.columns[cnt]
+    for lab in ('Iris-setosa', 'Iris-versicolor', 'Iris-virginica'):
+        plt.hist(X.loc[y==lab, feature], label=lab, bins=10, alpha=0.3,)
+    plt.xlabel(feature)
+    plt.legend(loc='upper right', fancybox=True, fontsize=8)
+
+plt.tight_layout()
+plt.show()
+
+# Covariance matrix and Eigenvalue, Eigenvector
+X_std = StandardScaler().fit_transform(X)
+X_std = pd.DataFrame(X_std,columns = ['sepal_length','sepal_width', 'petal_length', 'petal_width'])
+Covariance_matrix = X_std.cov()
+eig_vals, eig_vecs = np.linalg.eig(Covariance_matrix)
+
+# find the best two Eigenvectors based on the two largest Eigenvalues
+# and see Which two Eigenvalues are better
+tot = sum(eig_vals)
+var_exp = [(i / tot)*100 for i in sorted(eig_vals, reverse=True)]
+cum_var_exp = np.cumsum(var_exp)
+
+plt.figure(figsize=(6, 4))
+plt.bar(range(4), var_exp, alpha=0.5, align='center', label='individual explained variance')
+plt.step(range(4), cum_var_exp, where='mid', label='cumulative explained variance')    # increase line plot
+plt.ylabel('Explained variance ratio')
+plt.xlabel('Principal components')
+plt.show()
+
+# Math the principal
+matrix_w = eig_vecs[:,:2]
+Y = X_std.dot(matrix_w)
+
+# this method I can create correct legend
+plt.figure(figsize=(6, 4))
+plt.scatter(iris.sepal_length, iris.sepal_width, c= pd.Categorical(iris["class"]).codes)
+plt.xlabel('sepal_len')
+plt.ylabel('sepal_wid')
+plt.legend(loc='best')
+plt.show()
+
+# this method I can create correct legend
+plt.figure(figsize=(6, 4))
+for lab, col in zip(('Iris-setosa', 'Iris-versicolor', 'Iris-virginica'), ('blue', 'red', 'green')):
+     plt.scatter(Y.loc[y==lab, 0], Y.loc[y==lab, 1], label=lab, c=col)
+plt.xlabel('Principal Component 1')
+plt.ylabel('Principal Component 2')
+plt.legend(loc='lower center')
+plt.show()
