@@ -56,8 +56,10 @@ The code includes following:
 4) use for loop to find best K
 
 
-
-
+# Lesson 9
+PCA can reduce math workload when the data increase. This code uses IRIS dataset and reduces 4 features into two principal components.
+1) Calculate Covariance matrix and Eigenvalue, Eigenvector with Pandas
+2) Calculate Principal Values
 
 
 
