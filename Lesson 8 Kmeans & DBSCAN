@@ -1,0 +1,82 @@
+import pandas as pd
+from pandas.plotting import scatter_matrix
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+import numpy as np
+
+# prepare X
+beer = pd.read_csv('聚类算法/data.txt', sep=' ')
+X = beer.iloc[:, 1:]  # select 2-- columns
+
+# prepare model
+km = KMeans(n_clusters=3).fit(X)   # set cluster number
+km2 = KMeans(n_clusters=2).fit(X)
+
+# Do cluster
+beer['cluster'] = km.labels_   # [0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 2, 0, 0, 0, 1, 0, 0, 1, 2] 0，1，2 is the cluster name
+beer['cluster2'] = km2.labels_
+beer.sort_values('cluster')
+
+# Calculate cluster center
+beer.groupby("cluster").mean()
+beer.groupby("cluster2").mean()
+centers = beer.groupby("cluster").mean().reset_index()
+
+# Plot with only two features
+plt.scatter(beer["calories"], beer["alcohol"], c=beer["cluster"])
+plt.scatter(centers.calories, centers.alcohol, linewidths=3, marker='+', s=300, c='black')
+
+plt.xlabel("Calories")
+plt.ylabel("Alcohol")
+
+# Plot any two features !!!
+scatter_matrix(beer.iloc[:, 1:5],s=100, alpha=1, c=beer["cluster"], figsize=(10,10))
+plt.suptitle("With 3 centroids initialized")
+
+scatter_matrix(beer[["calories","sodium","alcohol","cost"]],s=100, alpha=1, c=colors[beer["cluster2"]], figsize=(10,10))
+plt.suptitle("With 2 centroids initialized")
+
+# # Do cluster with Scaled Data
+from sklearn.preprocessing import StandardScaler
+
+# Scale data
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Fit data
+km = KMeans(n_clusters=3).fit(X_scaled)
+beer["scaled_cluster"] = km.labels_
+
+# Plot result
+scatter_matrix(X, c=beer.scaled_cluster, alpha=1, figsize=(10,10), s=100)
+
+from sklearn import metrics
+
+# Use Silhouette Coefficient to measure model
+score_scaled = metrics.silhouette_score(X,beer.scaled_cluster)
+score = metrics.silhouette_score(X,beer.cluster)
+print(score_scaled, score)  # 0.1797806808940007 0.6731775046455796
+# the result tells us sometime scaled data won't generate better result
+
+# find the best K
+scores = []
+for k in range(2,20):
+    labels = KMeans(n_clusters=k).fit(X).labels_
+    score = metrics.silhouette_score(X, labels)
+    scores.append(score)
+
+
+plt.plot(list(range(2,20)), scores)
+plt.xlabel("Number of Clusters Initialized")
+plt.ylabel("Sihouette Score")
+
+# DBSCAN Cluster
+from sklearn.cluster import DBSCAN
+
+# fit data
+db = DBSCAN(eps=10, min_samples=2).fit(X)  # eps =r
+labels = db.labels_
+beer['cluster_db'] = labels
+
+# plot data
+scatter_matrix(X, c=beer.cluster_db, figsize=(10,10), s=100)
