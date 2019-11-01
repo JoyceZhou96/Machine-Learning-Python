@@ -1,0 +1,60 @@
+from __future__ import absolute_import,division,print_function
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+from statsmodels.graphics.tsaplots import plot_pacf,plot_acf
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+pd.set_option('display.float_format',  lambda x: '%.5f' % x)
+np.set_printoptions(precision=5, suppress=True)
+
+pd.set_option('display.max_columns',100)
+pd.set_option('display.max_rows', 100)
+
+sns.set(style='ticks', context='poster')
+
+air = pd.read_html('https://github.com/SimiY/pydata-sf-2016-arima-tutorial/blob/master/data/international-airline-passengers.csv', header=0, index_col=0, parse_dates=[0])
+air = pd.DataFrame(air[0])
+air["time"] = pd.to_datetime(air.Month)
+air = air.set_index('time',drop = True)
+
+# Plot first to observe
+fig, ax = plt.subplots(figsize=(8,6))
+air['n_pass_thousands'].plot(ax=ax)
+ax.set_title('International airline passengers, 1949-1960')
+ax.set_ylabel('Thousands of passengers')
+ax.set_xlabel('Year')
+ax.xaxis.set_ticks_position('bottom')
+fig.tight_layout()
+
+# Examine annual trend in the data
+fig, ax = plt.subplots(figsize=(8,6))
+
+air['n_pass_thousands'].resample('AS').sum().plot(ax=ax)   # by year
+
+# ax.set_title('Aggregated annual series: International airline passengers, 1949-1960');
+fig.suptitle('Aggregated annual series: International airline passengers, 1949-1960')
+ax.set_ylabel('Thousands of passengers')
+ax.set_xlabel('Year')
+ax.xaxis.set_ticks_position('bottom')
+fig.tight_layout()
+fig.subplots_adjust(top=0.9)
+
+air_1 = air.n_pass_thousands.diff(1).dropna()
+air_1.plot()
+air_2 = air_1.diff(1)
+air_2.plot()
+
+# Select Best Q & P
+# Input must be datetime for the index
+acf = plot_acf(air_1,lags = 20) # q = 1
+pacf = plot_pacf(air_1,lags= 20) # p = 1
+
+
+# fit ARIMA model
+arima200 = sm.tsa.SARIMAX(air.n_pass_thousands, order=(1,1,1))
+model_results = arima200.fit()
+model_results.summary()
+
+pred = model_results.predict()
